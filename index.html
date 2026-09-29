@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventar Klamottenschrank</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome für Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Quicksand -->
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .girly-font { font-family: 'Quicksand', sans-serif; }
+        .dragging { opacity: 0.4; border: 2px dashed #78b1b0 !important; }
+        .drop-column { min-height: 150px; }
+        
+        .bg-custom-pink { background-color: #ec5578; }
+        .bg-custom-pink:hover { background-color: #d44366; }
+        .text-custom-pink { color: #ec5578; }
+        
+        .bg-custom-turkis { background-color: #78b1b0; }
+        .bg-custom-turkis:hover { background-color: #639b9a; }
+        .text-custom-turkis { color: #528281; }
+    </style>
+</head>
+<body class="bg-pink-50/30 text-slate-800 min-h-screen flex flex-col items-center py-10 px-4">
+
+    <!-- HAUPTCONTAINER -->
+    <div class="w-full max-w-4xl bg-white border border-pink-100 rounded-3xl shadow-xl p-6 space-y-6">
+        
+        <!-- HEADER -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-pink-100 pb-4 gap-4">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight text-slate-800">✨ Inventar Klamottenschrank (DLRG Halle-Saalekreis)</h1>
+                <p id="user-status" class="text-xs text-slate-400 mt-0.5">Nicht eingeloggt</p>
+            </div>
+            <div class="flex gap-2 items-center w-full sm:w-auto justify-end">
+                <button id="admin-panel-btn" onclick="openAdminModal()" class="hidden text-xs bg-amber-50 text-amber-700 px-3 py-1.5 rounded-xl border border-amber-200 hover:bg-amber-100 transition font-semibold">Admin-Bereich</button>
+                <button id="logout-btn" onclick="logout()" class="hidden text-xs bg-pink-50 text-[#ec5578] px-3 py-1.5 rounded-xl border border-pink-200 hover:bg-pink-100 transition font-semibold">Abmelden</button>
+            </div>
+        </div>
+
+        <!-- 1. LOGIN / REGISTRIERUNG BEREICH -->
+        <div id="auth-view" class="space-y-4 max-w-md mx-auto w-full">
+            <div id="auth-tabs" class="flex border-b border-pink-100 mb-4">
+                <button id="tab-login-btn" onclick="switchAuthTab('login')" class="flex-1 pb-2 text-sm font-bold text-[#ec5578] border-b-2 border-[#ec5578]">Anmelden</button>
+                <button id="tab-register-btn" onclick="switchAuthTab('register')" class="flex-1 pb-2 text-sm font-semibold text-slate-400 border-b-2 border-transparent">Registrieren</button>
+            </div>
+
+            <!-- Login Ansicht -->
+            <div id="login-form" class="space-y-3">
+                <input type="text" id="login-identifier" placeholder="Benutzername oder E-Mail-Adresse" class="w-full bg-pink-50/20 border border-pink-200 rounded-xl p-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#78b1b0]">
+                <input type="password" id="login-password" placeholder="Passwort" class="w-full bg-pink-50/20 border border-pink-200 rounded-xl p-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#78b1b0]">
+                <div class="flex justify-between items-center text-xs">
+                    <button onclick="switchAuthTab('forgot')" class="text-slate-400 hover:text-[#ec5578] transition">Passwort vergessen?</button>
+                </div>
+                <button onclick="login()" class="w-full bg-custom-turkis text-white font-bold text-sm py-2.5 rounded-xl transition shadow-sm">Login</button>
+            </div>
+
+            <!-- Registrierung Ansicht -->
+            <div id="register-form" class="space-y-3 hidden">
+                <input type="text" id="reg-username" placeholder="Benutzername (Pflichtfeld)" class="w-full bg-pink-50/20 border border-pink-200 rounded-xl p-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#78b1b0]">
+                <input type="email" id="reg-email" placeholder="E-Mail-Adresse (Pflichtfeld)" class="w-full bg-pink-50/20 border border-pink-200 rounded-xl p-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#78b1b0]">
+                <input type="password" id="reg-password" placeholder="Passwort (Pflichtfeld)" class="w-full bg-pink-50/20 border border-pink-200 rounded-xl p-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#78b1b0]">
+                <input type="password" id="reg-password-confirm" placeholder="Passwort wiederholen (Pflichtfeld)" class="w-full bg-pink-50/20 border border-pink-200 rounded-xl p-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#78b1b0]">
+                <button onclick="register()" class="w-full bg-custom-pink text-white font-bold text-sm py-2.5 rounded-xl transition shadow-sm">Registrieren & Freigabe anfordern</button>
+            </div>
+
+            <!-- Passwort vergessen Ansicht -->
+            <div id="forgot-form" class="space-y-3 hidden">
+                <p class="text-xs text-slate-500">Gib deine E-Mail-Adresse ein, um einen Link zum Zurücksetzen deines Passworts zu erhalten.</p>
+                <input type="email" id="forgot-email" placeholder="E-Mail-Adresse" class="w-full bg-pink-50/20 border border-pink-200 rounded-xl p-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#78b1b0]">
+                <div class="flex gap-2">
+                    <button onclick="resetPassword()" class="flex-1 bg-custom-turkis text-white font-bold text-sm py-2.5 rounded-xl transition shadow-sm">Link senden</button>
+                    <button onclick="switchAuthTab('login')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm px-4 py-2.5 rounded-xl transition">Zurück zum Login</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. APP BEREICH (Nach Login & Freigabe sichtbar) -->
+        <div id="app-view" class="space-y-6 hidden">
+            
+            <!-- AKTIONEN-NAVIGATION -->
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="openCreateCategoryModal()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm py-3 px-2 rounded-2xl transition shadow-sm text-center">
+                    📁 Kategorie anlegen
+                </button>
+                <button onclick="openModal('modal-in')" class="bg-custom-turkis text-white font-bold text-xs sm:text-sm py-3 px-2 rounded-2xl transition shadow-sm text-center">
+                    + Eingang
+                </button>
+                <button onclick="openModal('modal-out')" class="bg-custom-pink text-white font-bold text-xs sm:text-sm py-3 px-2 rounded-2xl transition shadow-sm text-center">
+                    - Ausgabe
+                </button>
+            </div>
+
+            <!-- SCHRANK-ANORDNUNG -->
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-sm font-bold text-slate-700">📦 Schrank-Anordnung</h2>
+                    <span class="text-[10px] text-slate-400 italic">per Drag & Drop verschiebbar</span>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-pink-50/20 border border-pink-100 rounded-2xl p-3 space-y-3 shadow-inner">
+                        <div class="text-xs font-bold text-[#ec5578] uppercase tracking-wider px-1 girly-font">Schrankseite Links</div>
+                        <div id="inventory-col-0" class="drop-column space-y-3" data-column="0">
+                            <p class="text-xs text-slate-400 italic p-2">Lade Bestand...</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-pink-50/20 border border-pink-100 rounded-2xl p-3 space-y-3 shadow-inner">
+                        <div class="text-xs font-bold text-[#ec5578] uppercase tracking-wider px-1 girly-font">Schrankseite Rechts</div>
+                        <div id="inventory-col-1" class="drop-column space-y-3" data-column="1">
+                            <p class="text-xs text-slate-400 italic p-2">Lade Bestand...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HISTORIE BUTTON AM RAND/UNTEN -->
+            <div class="flex justify-center pt-2 border-t border-pink-100">
+                <button onclick="openHistoryModal()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold px-4 py-2 rounded-xl transition border border-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Buchungs-Historie anzeigen
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- MODAL: HISTORIE -->
+    <div id="modal-history" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white border border-pink-100 w-full max-w-lg rounded-3xl p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-pink-100 pb-3">
+                <h3 class="font-bold text-base text-slate-800">📜 Buchungs-Historie</h3>
+                <button onclick="closeModal('modal-history')" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+            <div class="space-y-2 max-h-80 overflow-y-auto pr-1" id="history-container">
+                <p class="text-xs text-slate-400 italic">Lade Historie...</p>
+            </div>
+            <div class="flex justify-end pt-3 border-t border-pink-100">
+                <button onclick="closeModal('modal-history')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm px-4 py-2.5 rounded-xl transition">Schließen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ADMIN BEREICH (NUTZER VERWALTEN) -->
+    <div id="modal-admin" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white border border-pink-100 w-full max-w-lg rounded-3xl p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-pink-100 pb-3">
+                <h3 class="font-bold text-base text-slate-800">Admin-Bereich: Nutzerverwaltung</h3>
+                <button onclick="closeModal('modal-admin')" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+            <div class="space-y-4 max-h-80 overflow-y-auto pr-1">
+                <div>
+                    <h4 class="text-xs font-bold text-[#ec5578] uppercase tracking-wider mb-2">Ausstehende Freigaben</h4>
+                    <div id="pending-users-container" class="space-y-2">
+                        <p class="text-xs text-slate-400 italic">Lade...</p>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Freigeschaltete Nutzer</h4>
+                    <div id="all-users-container" class="space-y-2">
+                        <p class="text-xs text-slate-400 italic">Lade...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end pt-3 border-t border-pink-100">
+                <button onclick="closeModal('modal-admin')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm px-4 py-2.5 rounded-xl transition">Schließen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: KATEGORIE ERSTELLEN & BEARBEITEN -->
+    <div id="modal-category" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white border border-pink-100 w-full max-w-md rounded-3xl p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-pink-100 pb-3">
+                <h3 id="modal-cat-title" class="font-bold text-base text-slate-800">Kategorie anlegen</h3>
+                <button onclick="closeModal('modal-category')" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+            
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs text-slate-600 block mb-1 font-semibold">Name der Kategorie:</label>
+                    <input type="text" id="cat-name-input" placeholder="z.B. T-Shirts" class="w-full bg-pink-50/20 border border-pink-200 rounded-xl p-2.5 text-sm text-slate-800 focus:outline-none focus:border-[#78b1b0]">
+                </div>
+
+                <div>
+                    <label class="text-xs text-slate-600 block mb-1 font-semibold">Beschreibung (optional):</label>
+                    <textarea id="cat-desc-input" placeholder="optional" rows="2" class="w-full bg-pink-50/20 border border-pink-200 rounded-xl p-2.5 text-sm text-slate-800 focus:outline-none focus:border-[#78b1b0] resize-none"></textarea>
+                </div>
+
+                <div>
+                    <label class="text-xs text-slate-600 block mb-1 font-semibold">Größen verwalten:</label>
+                    <div id="cat-sizes-container" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
+                    <button onclick="addSizeField('cat-sizes-container', '', 0)" class="mt-2 text-xs bg-pink-50 hover:bg-pink-100 text-[#ec5578] px-3 py-2 rounded-xl transition font-semibold border border-pink-200">
+                        + Größe hinzufügen
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-3 border-t border-pink-100">
+                <button id="delete-cat-btn" onclick="deleteCurrentCategory()" class="hidden text-xs bg-rose-50 text-rose-600 hover:bg-rose-100 px-3 py-2 rounded-xl border border-rose-200 transition font-semibold">Kategorie löschen</button>
+                <div class="flex gap-2 ml-auto">
+                    <button onclick="saveCategory()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold text-sm px-4 py-2.5 rounded-xl transition shadow-sm">Speichern</button>
+                    <button onclick="closeModal('modal-category')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm px-4 py-2.5 rounded-xl transition">Abbrechen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: EINGABE -->
+    <div id="modal-in" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white border border-pink-100 w-full max-w-lg rounded-3xl p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-pink-100 pb-3">
+                <h3 class="font-bold text-base text-slate-800">Bestand hinzufügen (Eingang)</h3>
+                <button onclick="closeModal('modal-in')" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+            
+            <div class="space-y-3">
+                <p class="text-xs text-slate-500">Mengen eintragen oder direkt neue Größen hinzufügen:</p>
+                <div id="in-blocks-container" class="space-y-3 max-h-80 overflow-y-auto pr-1"></div>
+                <button onclick="addStockBlock('in')" class="w-full text-xs bg-pink-50 hover:bg-pink-100 text-[#ec5578] py-2.5 rounded-xl transition text-center font-semibold border border-pink-200">
+                    + Weitere Kategorie hinzufügen
+                </button>
+            </div>
+
+            <div class="flex gap-2 pt-3 border-t border-pink-100">
+                <button onclick="bookStock('in')" class="flex-1 bg-custom-turkis text-white font-bold text-sm py-2.5 rounded-xl transition shadow-sm">Eingabe buchen</button>
+                <button onclick="closeModal('modal-in')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm px-4 py-2.5 rounded-xl transition">Abbrechen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: AUSGABE -->
+    <div id="modal-out" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white border border-pink-100 w-full max-w-lg rounded-3xl p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-pink-100 pb-3">
+                <h3 class="font-bold text-base text-slate-800">Bestand entnehmen (Ausgabe)</h3>
+                <button onclick="closeModal('modal-out')" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+            
+            <div class="space-y-3">
+                <p class="text-xs text-slate-500">Entnahmemengen bei Größen eintragen:</p>
+                <div id="out-blocks-container" class="space-y-3 max-h-80 overflow-y-auto pr-1"></div>
+                <button onclick="addStockBlock('out')" class="w-full text-xs bg-pink-50 hover:bg-pink-100 text-[#ec5578] py-2.5 rounded-xl transition text-center font-semibold border border-pink-200">
+                    + Weitere Kategorie hinzufügen
+                </button>
+            </div>
+
+            <div class="flex gap-2 pt-3 border-t border-pink-100">
+                <button onclick="bookStock('out')" class="flex-1 bg-custom-pink text-white font-bold text-sm py-2.5 rounded-xl transition shadow-sm">Ausgabe buchen</button>
+                <button onclick="closeModal('modal-out')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm px-4 py-2.5 rounded-xl transition">Abbrechen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FIREBASE & LOGIK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification, updateProfile, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, query, where, getDoc, addDoc, orderBy } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCciFU4Mlt7oS_tPYOeQk2jE-3GGxiylKU",
+            authDomain: "inventar-klamottenschran-1534a.firebaseapp.com",
+            projectId: "inventar-klamottenschran-1534a",
+            storageBucket: "inventar-klamottenschran-1534a.firebasestorage.app",
+            messagingSenderId: "312284058012",
+            appId: "1:312284058012:web:2abdb63c4b0a7c43db7859"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let categoriesData = {}; 
+        let editingOriginalCategoryName = null;
+        let currentUserData = null;
+        let currentAuthUser = null;
+
+        const sizeOrder = ["140", "152", "152-164", "164", "3XS", "XXS", "XS", "S", "M", "L", "XL", "XXL", "3XL", "4XL", "5XL", "ONE SIZE", "UNISEX"];
+
+        function sortSizes(sizesArray) {
+            return sizesArray.sort((a, b) => {
+                let upperA = a.toUpperCase().trim();
+                let upperB = b.toUpperCase().trim();
+
+                let indexA = sizeOrder.indexOf(upperA);
+                let indexB = sizeOrder.indexOf(upperB);
+
+                if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+                if (indexA !== -1) return -1; 
+                if (indexB !== -1) return 1;
+
+                let numA = parseFloat(upperA);
+                let numB = parseFloat(upperB);
+                if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+
+                return upperA.localeCompare(upperB);
+            });
+        }
+
+        function getReadableAuthError(errorCode) {
+            switch (errorCode) {
+                case 'auth/invalid-credential':
+                case 'auth/wrong-password':
+                case 'auth/user-not-found':
+                    return 'Das eingegebene Passwort oder die E-Mail-Adresse ist falsch.';
+                case 'auth/invalid-email':
+                    return 'Die E-Mail-Adresse hat ein ungültiges Format.';
+                case 'auth/email-already-in-use':
+                    return 'Diese E-Mail-Adresse ist bereits registriert. Falls dein Account gelöscht wurde, wende dich bitte an einen Administrator.';
+                case 'auth/weak-password':
+                    return 'Das Passwort ist zu schwach (mindestens 6 Zeichen).';
+                default:
+                    return 'Ein Fehler ist aufgetreten: ' + errorCode;
+            }
+        }
+
+        window.switchAuthTab = (mode) => {
+            const tabLogin = document.getElementById('tab-login-btn');
+            const tabRegister = document.getElementById('tab-register-btn');
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const forgotForm = document.getElementById('forgot-form');
+            const authTabs = document.getElementById('auth-tabs');
+
+            loginForm.classList.add('hidden');
+            registerForm.classList.add('hidden');
+            forgotForm.classList.add('hidden');
+            authTabs.classList.remove('hidden');
+
+            if (mode === 'login') {
+                tabLogin.className = "flex-1 pb-2 text-sm font-bold text-[#ec5578] border-b-2 border-[#ec5578]";
+                tabRegister.className = "flex-1 pb-2 text-sm font-semibold text-slate-400 border-b-2 border-transparent";
+                loginForm.classList.remove('hidden');
+            } else if (mode === 'register') {
+                tabRegister.className = "flex-1 pb-2 text-sm font-bold text-[#ec5578] border-b-2 border-[#ec5578]";
+                tabLogin.className = "flex-1 pb-2 text-sm font-semibold text-slate-400 border-b-2 border-transparent";
+                registerForm.classList.remove('hidden');
+            } else if (mode === 'forgot') {
+                authTabs.classList.add('hidden'); 
+                forgotForm.classList.remove('hidden');
+            }
+        };
+
+        async function resolveEmail(identifier) {
+            identifier = identifier.trim();
+            if (identifier.includes('@')) return identifier; 
+
+            try {
+                const q = query(collection(db, "usernames"), where("username", "==", identifier));
+                const querySnapshot = await getDocs(q);
+                if (!querySnapshot.empty) {
+                    return querySnapshot.docs[0].data().email;
+                }
+            } catch (e) {
+                console.error("Fehler beim Auflösen des Benutzernamens", e);
+            }
+            return null;
+        }
+
+        window.login = async () => {
+            const identifierInput = document.getElementById('login-identifier').value.trim();
+            const pass = document.getElementById('login-password').value;
+
+            if (!identifierInput || !pass) { 
+                alert("Bitte Benutzername/E-Mail und Passwort eingeben!"); 
+                return; 
+            }
+
+            try {
+                let emailToUse = await resolveEmail(identifierInput);
+                if (!emailToUse) {
+                    alert("Dieser Benutzername wurde nicht gefunden. Versuche es direkt mit deiner E-Mail-Adresse.");
+                    return;
+                }
+
+                const userCredential = await signInWithEmailAndPassword(auth, emailToUse, pass);
+                
+                if (!userCredential.user.emailVerified) {
+                    alert("Bitte bestätige zuerst deine E-Mail-Adresse über den Link, den wir dir geschickt haben!");
+                    signOut(auth);
+                    return;
+                }
+
+                const displayName = userCredential.user.displayName || "";
+                const userDocSnap = await getDoc(doc(db, "usernames", displayName));
+                
+                if (!userDocSnap.exists()) {
+                    alert("Dein Account wurde von einem Administrator entfernt oder gelöscht. Bitte wende dich an einen Admin, um neuen Zugang zu erhalten.");
+                    signOut(auth);
+                    return;
+                }
+
+                if (userDocSnap.data().approved === false) {
+                    alert("Dein Account wartet noch auf die Freigabe durch einen Administrator.");
+                    signOut(auth);
+                    return;
+                }
+            } catch (e) { 
+                alert(getReadableAuthError(e.code));
+            }
+        };
+
+        window.register = async () => {
+            const username = document.getElementById('reg-username').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const pass = document.getElementById('reg-password').value;
+            const passConfirm = document.getElementById('reg-password-confirm').value;
+
+            if (!username || !email || !pass || !passConfirm) {
+                alert("Bitte alle Pflichtfelder ausfüllen!");
+                return;
+            }
+
+            if (pass !== passConfirm) {
+                alert("Die beiden Passwörter stimmen nicht überein!");
+                return;
+            }
+
+            try {
+                const checkQ = query(collection(db, "usernames"), where("username", "==", username));
+                const checkSnap = await getDocs(checkQ);
+                if (!checkSnap.empty) {
+                    alert("Dieser Benutzername ist leider bereits vergeben.");
+                    return;
+                }
+
+                const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+                await updateProfile(userCredential.user, { displayName: username });
+
+                const allUsernames = await getDocs(collection(db, "usernames"));
+                const isFirstUser = allUsernames.empty;
+
+                await setDoc(doc(db, "usernames", username), {
+                    username: username,
+                    email: email,
+                    uid: userCredential.user.uid,
+                    approved: isFirstUser,
+                    isAdmin: isFirstUser
+                });
+
+                await sendEmailVerification(userCredential.user);
+
+                if (isFirstUser) {
+                    alert("Registrierung erfolgreich! Da du der erste Nutzer bist, bist du automatisch Admin und freigeschaltet.");
+                } else {
+                    alert("Registrierung erfolgreich! Bitte verifiziere deine E-Mail. Ein Administrator muss deinen Account anschließend freischalten.");
+                }
+                
+                document.getElementById('reg-username').value = '';
+                document.getElementById('reg-email').value = '';
+                document.getElementById('reg-password').value = '';
+                document.getElementById('reg-password-confirm').value = '';
+
+                signOut(auth);
+                window.switchAuthTab('login');
+            } catch (e) { 
+                alert(getReadableAuthError(e.code)); 
+            }
+        };
+
+        window.resetPassword = async () => {
+            const email = document.getElementById('forgot-email').value.trim();
+            if (!email) { alert("Bitte gib deine E-Mail-Adresse ein."); return; }
+
+            try {
+                await sendPasswordResetEmail(auth, email);
+                alert("Wir haben dir einen Link zum Zurücksetzen deines Passworts per E-Mail gesendet!");
+                window.switchAuthTab('login');
+            } catch (e) {
+                alert(getReadableAuthError(e.code));
+            }
+        };
+
+        window.logout = () => signOut(auth);
+
+        onAuthStateChanged(auth, async (user) => {
+            currentAuthUser = user;
+            const authView = document.getElementById('auth-view');
+            const appView = document.getElementById('app-view');
+            const logoutBtn = document.getElementById('logout-btn');
+            const adminBtn = document.getElementById('admin-panel-btn');
+            const userStatus = document.getElementById('user-status');
+
+            if (user && user.emailVerified) {
+                let displayName = user.displayName;
+                let userDoc = null;
+                if (displayName) {
+                    const docSnap = await getDoc(doc(db, "usernames", displayName));
+                    if (docSnap.exists()) {
+                        userDoc = docSnap.data();
+                    } else {
+                        signOut(auth);
+                        return;
+                    }
+                }
+
+                if (userDoc && userDoc.approved === false) {
+                    signOut(auth);
+                    return;
+                }
+
+                currentUserData = userDoc;
+                authView.classList.add('hidden');
+                appView.classList.remove('hidden');
+                logoutBtn.classList.remove('hidden');
+                
+                if (userDoc && userDoc.isAdmin) {
+                    adminBtn.classList.remove('hidden');
+                } else {
+                    adminBtn.classList.add('hidden');
+                }
+
+                userStatus.textContent = `Eingeloggt als: ${displayName || user.email} ${userDoc?.isAdmin ? '(Admin)' : ''}`;
+                loadInventory();
+            } else {
+                authView.classList.remove('hidden');
+                appView.classList.add('hidden');
+                logoutBtn.classList.add('hidden');
+                adminBtn.classList.add('hidden');
+                userStatus.textContent = "Nicht eingeloggt";
+                currentUserData = null;
+            }
+        });
+
+        // Historie Funktionen
+        window.openHistoryModal = async () => {
+            document.getElementById('modal-history').classList.remove('hidden');
+            const container = document.getElementById('history-container');
+            container.innerHTML = '<p class="text-xs text-slate-400 italic">Lade Historie...</p>';
+
+            try {
+                const q = query(collection(db, "buchungen"), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                container.innerHTML = '';
+                if (querySnapshot.empty) {
+                    container.innerHTML = '<p class="text-xs text-slate-400 italic">Noch keine Buchungen vorhanden.</p>';
+                    return;
+                }
+
+                querySnapshot.forEach((docSnap) => {
+                    let data = docSnap.data();
+                    let dateStr = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString('de-DE') : 'Unbekannte Zeit';
+                    let badgeColor = data.type === 'in' ? 'bg-custom-turkis text-white' : 'bg-custom-pink text-white';
+                    let typeText = data.type === 'in' ? 'Eingang' : 'Ausgang';
+
+                    let div = document.createElement('div');
+                    div.className = "bg-pink-50/10 p-3 rounded-xl border border-pink-100 text-xs space-y-1";
+                    div.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-slate-800">${data.user || 'Unbekannt'}</span>
+                            <span class="text-[10px] text-slate-400">${dateStr}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold ${badgeColor}">${typeText}</span>
+                            <span class="font-semibold text-slate-700">${data.category}</span>
+                            <span class="text-slate-500">Größe ${data.size}: <strong>${data.amount} Stk.</strong></span>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            } catch (e) {
+                container.innerHTML = '<p class="text-xs text-rose-500">Fehler beim Laden der Historie.</p>';
+            }
+        };
+
+        // Admin-Bereich Funktionen
+        window.openAdminModal = async () => {
+            document.getElementById('modal-admin').classList.remove('hidden');
+            loadAdminUsers();
+        };
+
+        async function loadAdminUsers() {
+            const pendingContainer = document.getElementById('pending-users-container');
+            const allContainer = document.getElementById('all-users-container');
+            pendingContainer.innerHTML = '<p class="text-xs text-slate-400 italic">Lade...</p>';
+            allContainer.innerHTML = '<p class="text-xs text-slate-400 italic">Lade...</p>';
+
+            try {
+                const snapshot = await getDocs(collection(db, "usernames"));
+                
+                pendingContainer.innerHTML = '';
+                allContainer.innerHTML = '';
+
+                let pendingCount = 0;
+                let allCount = 0;
+                const myUsername = currentAuthUser ? currentAuthUser.displayName : null;
+
+                snapshot.forEach((docSnap) => {
+                    let uData = docSnap.data();
+                    
+                    if (uData.approved === false) {
+                        pendingCount++;
+                        let div = document.createElement('div');
+                        div.className = "flex justify-between items-center bg-pink-50/10 p-2.5 rounded-xl border border-pink-100 text-xs";
+                        div.innerHTML = `
+                            <div>
+                                <span class="font-bold text-slate-800">${uData.username}</span>
+                                <span class="text-slate-400 block">${uData.email}</span>
+                            </div>
+                            <div class="flex gap-1">
+                                <button onclick="approveUser('${uData.username}')" class="bg-custom-turkis text-white font-bold px-2.5 py-1.5 rounded-lg transition">Freischalten</button>
+                                <button onclick="deleteUserRecord('${uData.username}')" class="bg-rose-50 text-rose-600 hover:bg-rose-100 px-2.5 py-1.5 rounded-lg transition border border-rose-200">Löschen</button>
+                            </div>
+                        `;
+                        pendingContainer.appendChild(div);
+                    } else {
+                        allCount++;
+                        let allDiv = document.createElement('div');
+                        allDiv.className = "flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs";
+                        let roleBadge = uData.isAdmin ? '<span class="text-amber-600 font-bold ml-1">(Admin)</span>' : '';
+                        
+                        let actionButtons = '';
+                        let isSelf = (myUsername && uData.username === myUsername);
+
+                        if (!uData.isAdmin) {
+                            actionButtons = `
+                                <div class="flex items-center gap-1">
+                                    <button onclick="makeAdmin('${uData.username}')" class="group text-slate-400 hover:text-amber-500 p-1.5 transition" title="Zum Admin machen"><i class="fa-solid fa-crown text-xs"></i></button>
+                                    <button onclick="deleteUserRecord('${uData.username}')" class="text-slate-400 hover:text-rose-600 p-1.5 transition" title="Nutzer entfernen"><i class="fa-solid fa-trash text-xs"></i></button>
+                                </div>
+                            `;
+                        } else {
+                            if (isSelf) {
+                                actionButtons = '<span class="text-[10px] text-slate-400 italic">Du (Admin)</span>';
+                            } else {
+                                actionButtons = `
+                                    <div class="flex items-center gap-1">
+                                        <button onclick="removeAdmin('${uData.username}')" class="group text-slate-400 hover:text-rose-600 p-1.5 transition text-xs" title="Admin-Rechte entziehen"><i class="fa-solid fa-crown text-xs text-slate-400 group-hover:text-amber-600 transition-colors"></i><i class="fa-solid fa-xmark text-[9px] ml-0.5 group-hover:text-rose-600 transition-colors"></i></button>
+                                        <button onclick="deleteUserRecord('${uData.username}')" class="text-slate-400 hover:text-rose-600 p-1.5 transition" title="Nutzer entfernen"><i class="fa-solid fa-trash text-xs"></i></button>
+                                    </div>
+                                `;
+                            }
+                        }
+
+                        allDiv.innerHTML = `
+                            <div>
+                                <span class="font-bold text-slate-800">${uData.username}</span> ${roleBadge}
+                                <span class="text-slate-400 block">${uData.email}</span>
+                            </div>
+                            ${actionButtons}
+                        `;
+                        allContainer.appendChild(allDiv);
+                    }
+                });
+
+                if (pendingCount === 0) {
+                    pendingContainer.innerHTML = '<p class="text-xs text-slate-400 italic">Keine ausstehenden Nutzer vorhanden.</p>';
+                }
+                if (allCount === 0) {
+                    allContainer.innerHTML = '<p class="text-xs text-slate-400 italic">Keine freigeschalteten Nutzer vorhanden.</p>';
+                }
+            } catch (e) {
+                pendingContainer.innerHTML = '<p class="text-xs text-rose-500">Fehler beim Laden.</p>';
+                allContainer.innerHTML = '<p class="text-xs text-rose-500">Fehler beim Laden.</p>';
+            }
+        }
+
+        window.approveUser = async (username) => {
+            try {
+                await setDoc(doc(db, "usernames", username), { approved: true }, { merge: true });
+                alert(`Nutzer ${username} wurde freigeschaltet!`);
+                loadAdminUsers();
+            } catch (e) {
+                alert("Fehler: " + e.message);
+            }
+        };
+
+        window.makeAdmin = async (username) => {
+            if (!confirm(`Möchtest du dem Nutzer "${username}" Admin-Rechte erteilen?`)) return;
+            try {
+                await setDoc(doc(db, "usernames", username), { isAdmin: true }, { merge: true });
+                alert(`Nutzer ${username} ist nun ebenfalls Admin!`);
+                loadAdminUsers();
+            } catch (e) {
+                alert("Fehler: " + e.message);
+            }
+        };
+
+        window.removeAdmin = async (username) => {
+            if (!confirm(`Möchtest du dem Nutzer "${username}" die Admin-Rechte wirklich entziehen?`)) return;
+            try {
+                await setDoc(doc(db, "usernames", username), { isAdmin: false }, { merge: true });
+                alert(`Dem Nutzer ${username} wurden die Admin-Rechte entzogen.`);
+                loadAdminUsers();
+            } catch (e) {
+                alert("Fehler: " + e.message);
+            }
+        };
+
+        window.deleteUserRecord = async (username) => {
+            if (!confirm(`Möchtest du den Nutzer "${username}" wirklich aus der Datenbank entfernen?`)) return;
+            try {
+                await deleteDoc(doc(db, "usernames", username));
+                alert(`Nutzer ${username} wurde entfernt. Er kann sich nun nicht mehr einloggen.`);
+                loadAdminUsers();
+            } catch (e) {
+                alert("Fehler beim Löschen: " + e.message);
+            }
+        };
+
+        window.openModal = (id) => {
+            if (Object.keys(categoriesData).length === 0) {
+                alert("Bitte erstelle zuerst eine Kategorie!");
+                return;
+            }
+            document.getElementById(id).classList.remove('hidden');
+            if (id === 'modal-in') initStockModal('in');
+            if (id === 'modal-out') initStockModal('out');
+        };
+
+        window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
+
+        async function loadInventory() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "kategorien"));
+                categoriesData = {};
+                
+                const col0 = document.getElementById('inventory-col-0');
+                const col1 = document.getElementById('inventory-col-1');
+                col0.innerHTML = '';
+                col1.innerHTML = '';
+
+                let catsArray = [];
+                querySnapshot.forEach((docSnap) => {
+                    let data = docSnap.data();
+                    catsArray.push({
+                        name: data.name,
+                        description: data.description || "",
+                        sizes: data.sizes || {},
+                        column: data.column !== undefined ? data.column : 0,
+                        order: data.order !== undefined ? data.order : 999
+                    });
+                });
+
+                catsArray.sort((a, b) => {
+                    if (a.column !== b.column) return a.column - b.column;
+                    return a.order - b.order;
+                });
+
+                if (catsArray.length === 0) {
+                    col0.innerHTML = '<p class="text-xs text-slate-400 italic p-2">Keine Kategorien da.</p>';
+                    col1.innerHTML = '<p class="text-xs text-slate-400 italic p-2">Lege oben eine an!</p>';
+                    return;
+                }
+
+                let hasItemCol0 = false;
+                let hasItemCol1 = false;
+
+                catsArray.forEach((cat) => {
+                    let catName = cat.name;
+                    let catDesc = cat.description;
+                    let sizes = cat.sizes;
+                    let targetCol = cat.column === 1 ? col1 : col0;
+                    if (cat.column === 1) hasItemCol1 = true; else hasItemCol0 = true;
+
+                    categoriesData[catName] = { sizes: sizes, description: catDesc };
+
+                    let sizesHtml = '';
+                    let sortedSizeKeys = sortSizes(Object.keys(sizes));
+
+                    if (sortedSizeKeys.length === 0) {
+                        sizesHtml = `<p class="text-xs text-slate-400 italic">Keine Größen</p>`;
+                    } else {
+                        for (let size of sortedSizeKeys) {
+                            let amount = sizes[size];
+                            sizesHtml += `
+                                <div class="flex justify-between items-center bg-pink-50/10 px-3 py-2 rounded-xl border border-pink-100 text-xs shadow-2xs">
+                                    <span class="text-slate-700 font-semibold">Größe ${size}</span>
+                                    <span class="${amount > 0 ? 'text-slate-700 font-bold' : 'text-slate-400'}">${amount} Stück</span>
+                                </div>
+                            `;
+                        }
+                    }
+
+                    let descHtml = '';
+                    if (catDesc && catDesc.trim() !== '') {
+                        descHtml = `<p class="text-xs text-slate-500 !mt-0 pb-1">${catDesc}</p>`;
+                    }
+
+                    targetCol.innerHTML += `
+                        <div class="category-card bg-white border border-pink-100 rounded-2xl p-4 space-y-2.5 cursor-move select-none shadow-xs hover:shadow-md transition-shadow" 
+                             draggable="true" 
+                             data-cat-name="${catName}">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-slate-300 hover:text-slate-500 cursor-grab"><i class="fa-solid fa-grip-vertical"></i></span>
+                                    <h3 class="font-bold text-sm text-slate-800 girly-font">${catName}</h3>
+                                </div>
+                                <button onclick="openEditCategoryModal('${catName}')" class="text-xs bg-pink-50 hover:bg-pink-100 text-[#ec5578] p-2 rounded-xl border border-pink-200 transition" title="Bearbeiten">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                            </div>
+                            ${descHtml}
+                            <div class="space-y-1.5">${sizesHtml}</div>
+                        </div>
+                    `;
+                });
+
+                if (!hasItemCol0) col0.innerHTML = '<p class="text-xs text-slate-400 italic p-2">Spalte leer</p>';
+                if (!hasItemCol1) col1.innerHTML = '<p class="text-xs text-slate-400 italic p-2">Spalte leer</p>';
+
+                initDragAndDrop();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function initDragAndDrop() {
+            const columns = document.querySelectorAll('.drop-column');
+            const cards = document.querySelectorAll('.category-card');
+
+            cards.forEach(card => {
+                card.addEventListener('dragstart', (e) => {
+                    card.classList.add('dragging');
+                    e.dataTransfer.setData('text/plain', card.dataset.catName);
+                });
+
+                card.addEventListener('dragend', () => {
+                    card.classList.remove('dragging');
+                    saveNewOrder();
+                });
+            });
+
+            columns.forEach(column => {
+                column.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    const draggingCard = document.querySelector('.dragging');
+                    const afterElement = getDragAfterElement(column, e.clientY);
+                    
+                    const emptyText = column.querySelector('p.italic');
+                    if (emptyText) emptyText.style.display = 'none';
+
+                    if (afterElement == null) {
+                        column.appendChild(draggingCard);
+                    } else {
+                        column.insertBefore(draggingCard, afterElement);
+                    }
+                });
+            });
+        }
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.category-card:not(.dragging)')];
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        async function saveNewOrder() {
+            const columns = document.querySelectorAll('.drop-column');
+            let batchUpdates = [];
+
+            columns.forEach((column, colIndex) => {
+                let cards = column.querySelectorAll('.category-card');
+                cards.forEach((card, index) => {
+                    let catName = card.dataset.catName;
+                    if (categoriesData[catName]) {
+                        batchUpdates.push({
+                            name: catName,
+                            column: colIndex,
+                            order: index,
+                            sizes: categoriesData[catName].sizes,
+                            description: categoriesData[catName].description
+                        });
+                    }
+                });
+            });
+
+            try {
+                for (let item of batchUpdates) {
+                    await setDoc(doc(db, "kategorien", item.name), item, { merge: true });
+                }
+                loadInventory();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        window.openCreateCategoryModal = () => {
+            editingOriginalCategoryName = null;
+            document.getElementById('modal-cat-title').textContent = "Kategorie anlegen";
+            document.getElementById('cat-name-input').value = '';
+            document.getElementById('cat-desc-input').value = '';
+            document.getElementById('cat-sizes-container').innerHTML = '';
+            document.getElementById('delete-cat-btn').classList.add('hidden');
+            addSizeField('cat-sizes-container', '', 0, true);
+            document.getElementById('modal-category').classList.remove('hidden');
+        };
+
+        window.openEditCategoryModal = (catName) => {
+            editingOriginalCategoryName = catName;
+            document.getElementById('modal-cat-title').textContent = "Kategorie bearbeiten";
+            document.getElementById('cat-name-input').value = catName;
+            document.getElementById('cat-desc-input').value = categoriesData[catName]?.description || '';
+            document.getElementById('delete-cat-btn').classList.remove('hidden');
+            
+            const container = document.getElementById('cat-sizes-container');
+            container.innerHTML = '';
+
+            let sizes = categoriesData[catName]?.sizes || {};
+            let sortedSizes = sortSizes(Object.keys(sizes));
+
+            for (let size of sortedSizes) {
+                addSizeField('cat-sizes-container', size, sizes[size] || 0, false);
+            }
+            if (sortedSizes.length === 0) addSizeField('cat-sizes-container', '', 0, false);
+            
+            document.getElementById('modal-category').classList.remove('hidden');
+        };
+
+        window.addSizeField = (containerId, value, currentStock, isNewCategory = false) => {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = "flex gap-2 items-center size-row";
+            div.dataset.currentStock = currentStock;
+
+            let stockInfoHtml = isNewCategory ? '' : `<span class="text-[10px] text-slate-400 w-16 text-right">${currentStock} da</span>`;
+
+            div.innerHTML = `
+                <input type="text" placeholder="Größe (z.B. S)" value="${value}" class="size-input flex-1 bg-pink-50/25 border border-pink-200 rounded-xl p-2 text-sm text-slate-800 focus:outline-none focus:border-[#78b1b0]">
+                ${stockInfoHtml}
+                <button onclick="tryRemoveSizeRow(this)" class="text-rose-400 hover:text-rose-600 px-2 text-sm">✕</button>
+            `;
+            container.appendChild(div);
+        };
+
+        window.tryRemoveSizeRow = (btn) => {
+            const row = btn.parentElement;
+            if (parseInt(row.dataset.currentStock || "0") > 0) {
+                alert("Kann nicht gelöscht werden, da Bestand > 0!");
+                return;
+            }
+            row.remove();
+        };
+
+        window.saveCategory = async () => {
+            let newCatName = document.getElementById('cat-name-input').value.trim();
+            let newCatDesc = document.getElementById('cat-desc-input').value.trim();
+
+            if (!newCatName) { alert("Bitte Namen eingeben!"); return; }
+
+            // Doppelte Namen prüfen (case-insensitive)
+            let lowerNewName = newCatName.toLowerCase();
+            for (let existingName of Object.keys(categoriesData)) {
+                if (existingName.toLowerCase() === lowerNewName) {
+                    if (!editingOriginalCategoryName || editingOriginalCategoryName.toLowerCase() !== lowerNewName) {
+                        alert("Fehler: Eine Kategorie mit diesem Namen existiert bereits!");
+                        return;
+                    }
+                }
+            }
+
+            const sizeRows = document.querySelectorAll('#cat-sizes-container .size-row');
+            let sizesObj = {};
+            let oldSizes = editingOriginalCategoryName ? (categoriesData[editingOriginalCategoryName]?.sizes || {}) : {};
+
+            for (let row of sizeRows) {
+                let sName = row.querySelector('.size-input').value.trim();
+                if (sName) sizesObj[sName] = oldSizes[sName] !== undefined ? oldSizes[sName] : 0;
+            }
+
+            if (Object.keys(sizesObj).length === 0) { alert("Mindestens eine Größe erforderlich!"); return; }
+
+            try {
+                let currentColumn = 0, currentOrder = 999;
+                if (editingOriginalCategoryName) {
+                    let card = document.querySelector(`[data-cat-name="${editingOriginalCategoryName}"]`);
+                    if (card) {
+                        currentColumn = parseInt(card.closest('.drop-column').dataset.column);
+                        currentOrder = [...card.closest('.drop-column').querySelectorAll('.category-card')].indexOf(card);
+                    }
+                    if (editingOriginalCategoryName !== newCatName) {
+                        await deleteDoc(doc(db, "kategorien", editingOriginalCategoryName));
+                    }
+                }
+
+                await setDoc(doc(db, "kategorien", newCatName), {
+                    name: newCatName, description: newCatDesc, column: currentColumn, order: currentOrder, sizes: sizesObj
+                });
+
+                closeModal('modal-category');
+                loadInventory();
+            } catch (e) { alert("Fehler: " + e.message); }
+        };
+
+        window.deleteCurrentCategory = async () => {
+            if (!editingOriginalCategoryName) return;
+            let totalStock = Object.values(categoriesData[editingOriginalCategoryName]?.sizes || {}).reduce((a, b) => a + b, 0);
+            if (totalStock > 0) { alert("Kategorie hat noch Bestand und kann nicht gelöscht werden!"); return; }
+            if (!confirm("Wirklich löschen?")) return;
+
+            try {
+                await deleteDoc(doc(db, "kategorien", editingOriginalCategoryName));
+                closeModal('modal-category');
+                loadInventory();
+            } catch (e) { alert("Fehler: " + e.message); }
+        };
+
+        function initStockModal(type) {
+            document.getElementById(`${type}-blocks-container`).innerHTML = '';
+            addStockBlock(type);
+        }
+
+        window.addStockBlock = (type) => {
+            const container = document.getElementById(`${type}-blocks-container`);
+            const div = document.createElement('div');
+            div.className = "stock-block bg-pink-50/20 border border-pink-100 rounded-2xl p-3 space-y-3";
+
+            let catOptions = '<option value="">-- Kategorie wählen --</option>';
+            for (let cName of Object.keys(categoriesData)) catOptions += `<option value="${cName}">${cName}</option>`;
+
+            let extraSizeHtml = type === 'in' ? `
+                <div class="mt-2 pt-2 border-t border-pink-200/60 flex gap-2 items-center">
+                    <input type="text" placeholder="Neue Größe (z.B. XL)" class="new-size-name-input flex-1 bg-white border border-pink-200 rounded-xl p-1.5 text-xs text-slate-800 focus:outline-none">
+                    <input type="number" placeholder="Menge" min="0" value="0" class="new-size-amount-input w-20 bg-white border border-pink-200 rounded-xl p-1.5 text-xs text-slate-800 focus:outline-none">
+                </div>
+            ` : '';
+
+            div.innerHTML = `
+                <div class="flex justify-between items-center gap-2">
+                    <select onchange="updateStockBlockSizes(this, '${type}')" class="stock-cat-select flex-1 bg-white border border-pink-200 rounded-xl p-2 text-xs text-slate-800 focus:outline-none">${catOptions}</select>
+                    <button onclick="this.closest('.stock-block').remove()" class="text-rose-400 hover:text-rose-600 px-2 text-xs bg-white border border-pink-200 py-2 rounded-xl">Entfernen</button>
+                </div>
+                <div class="stock-sizes-container space-y-2 pl-2 border-l-2 border-pink-200">
+                    <p class="text-xs text-slate-400 italic">Bitte Kategorie wählen</p>
+                </div>
+                ${extraSizeHtml}
+            `;
+            container.appendChild(div);
+        };
+
+        window.updateStockBlockSizes = (selectElement, type) => {
+            const block = selectElement.closest('.stock-block');
+            const sizesContainer = block.querySelector('.stock-sizes-container');
+            const catName = selectElement.value;
+            sizesContainer.innerHTML = '';
+
+            if (!catName || !categoriesData[catName]) {
+                sizesContainer.innerHTML = `<p class="text-xs text-slate-400 italic">Bitte Kategorie wählen</p>`;
+                return;
+            }
+
+            for (let size of sortSizes(Object.keys(categoriesData[catName].sizes))) {
+                let currentMax = categoriesData[catName].sizes[size] || 0;
+                let rowDiv = document.createElement('div');
+                rowDiv.className = "flex justify-between items-center gap-2 stock-size-row";
+                rowDiv.dataset.size = size;
+                rowDiv.innerHTML = `
+                    <span class="text-xs text-slate-700 font-semibold w-28">${size} <span class="text-slate-400 text-[10px]">(${currentMax} da)</span></span>
+                    <input type="number" placeholder="Menge" min="0" value="0" class="stock-amount-input w-28 bg-white border border-pink-200 rounded-xl p-1.5 text-xs text-slate-800 focus:outline-none">
+                `;
+                sizesContainer.appendChild(rowDiv);
+            }
+        };
+
+        window.bookStock = async (type) => {
+            const blocks = document.querySelectorAll(`#${type}-blocks-container .stock-block`);
+            if (blocks.length === 0) { alert("Keine Kategorie gewählt!"); return; }
+
+            let updates = {};
+            let historyEntries = [];
+            let currentUsername = currentAuthUser ? currentAuthUser.displayName || currentAuthUser.email : 'Unbekannter Nutzer';
+
+            for (let block of blocks) {
+                let catName = block.querySelector('.stock-cat-select').value;
+                if (!catName) { alert("Bitte alle Kategorien ausfüllen."); return; }
+
+                if (!updates[catName]) updates[catName] = { ...(categoriesData[catName].sizes || {}) };
+
+                for (let sRow of block.querySelectorAll('.stock-size-row')) {
+                    let size = sRow.dataset.size;
+                    let amount = parseInt(sRow.querySelector('.stock-amount-input').value.trim() || "0");
+
+                    if (amount > 0) {
+                        let current = updates[catName][size] || 0;
+                        if (type === 'in') {
+                            updates[catName][size] = current + amount;
+                        } else {
+                            if (current - amount < 0) { alert(`Nicht genug Bestand für ${catName} (${size})!`); return; }
+                            updates[catName][size] = current - amount;
+                        }
+
+                        historyEntries.push({
+                            type: type,
+                            category: catName,
+                            size: size,
+                            amount: amount,
+                            user: currentUsername,
+                            timestamp: new Date()
+                        });
+                    }
+                }
+
+                if (type === 'in') {
+                    const newSizeInput = block.querySelector('.new-size-name-input');
+                    const newAmountInput = block.querySelector('.new-size-amount-input');
+                    if (newSizeInput && newSizeInput.value.trim() !== '') {
+                        let newSizeName = newSizeInput.value.trim();
+                        let newAmount = parseInt(newAmountInput.value.trim() || "0");
+                        let current = updates[catName][newSizeName] || 0;
+                        updates[catName][newSizeName] = current + newAmount;
+
+                        if (newAmount > 0) {
+                            historyEntries.push({
+                                type: type,
+                                category: catName,
+                                size: newSizeName + ' (Neu)',
+                                amount: newAmount,
+                                user: currentUsername,
+                                timestamp: new Date()
+                            });
+                        }
+                    }
+                }
+            }
+
+            if (historyEntries.length === 0) {
+                alert("Es wurden keine Mengen eingetragen.");
+                return;
+            }
+
+            try {
+                // Buchungen speichern
+                for (let entry of historyEntries) {
+                    await addDoc(collection(db, "buchungen"), entry);
+                }
+
+                let colIdx = 0, orderIdx = 0;
+                for (let [catName, sizesObj] of Object.entries(updates)) {
+                    let card = document.querySelector(`[data-cat-name="${catName}"]`);
+                    if (card) {
+                        colIdx = parseInt(card.closest('.drop-column').dataset.column);
+                        orderIdx = [...card.closest('.drop-column').querySelectorAll('.category-card')].indexOf(card);
+                    }
+
+                    await setDoc(doc(db, "kategorien", catName), {
+                        name: catName, description: categoriesData[catName].description, column: colIdx, order: orderIdx, sizes: sizesObj
+                    }, { merge: true });
+                }
+
+                closeModal(`modal-${type}`);
+                loadInventory();
+                alert("Erfolgreich gebucht!");
+            } catch (e) { alert("Fehler: " + e.message); }
+        };
+    </script>
+</body>
+</html>
